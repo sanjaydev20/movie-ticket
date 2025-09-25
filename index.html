@@ -1,0 +1,194 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎟️ Movie Ticket Booking</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #111;
+      color: white;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #f39c12;
+    }
+
+    .movie-select, .info, .seats {
+      max-width: 600px;
+      margin: auto;
+      margin-bottom: 20px;
+    }
+
+    select, button {
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .seat-container {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .seat {
+      height: 25px;
+      background: #444;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .seat.selected {
+      background: #f39c12;
+    }
+
+    .seat.booked {
+      background: #e74c3c;
+      cursor: not-allowed;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .legend div {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend .box {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+
+    .info p {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎥 Book Your Movie Seat</h1>
+
+  <div class="movie-select">
+    <label for="movie">Choose Movie:</label>
+    <select id="movie">
+      <option value="200">leo - ₹200</option>
+      <option value="180">Jawan - ₹180</option>
+      <option value="150">jailer - ₹150</option>
+    </select>
+
+    <label for="show">Showtime:</label>
+    <label for="show">Showtime:</label>
+    <label for="show">Showtime:</label>
+    <select id="show">
+      <option value="10AM">10:00 AM</option>
+      <option value="1PM">1:00 PM</option>
+      <option value="4PM">4:00 PM</option>
+      <option value="7PM">7:00 PM</option>
+    </select>
+  </div>
+
+  <div class="seats">
+    <h2>Select Seats</h2>
+    <div class="seat-container" id="seatContainer"></div>
+
+    <div class="legend">
+      <div><div class="box" style="background:#444;"></div> Available</div>
+      <div><div class="box" style="background:#f39c12;"></div> Selected</div>
+      <div><div class="box" style="background:#e74c3c;"></div> Booked</div>
+    </div>
+  </div>
+
+  <div class="info">
+    <p id="summary">You selected 0 seat(s). Total: ₹0</p>
+    <button onclick="confirmBooking()">Confirm Booking</button>
+  </div>
+
+  <script>
+    const seatContainer = document.getElementById('seatContainer');
+    const movieSelect = document.getElementById('movie');
+    const showSelect = document.getElementById('show');
+    const summary = document.getElementById('summary');
+
+    const rows = 5;
+    const cols = 8;
+    let selectedSeats = [];
+
+    function generateSeats() {
+      seatContainer.innerHTML = '';
+      selectedSeats = [];
+
+      const bookedKey = `${movieSelect.value}_${showSelect.value}`;
+      const bookedSeats = JSON.parse(localStorage.getItem(bookedKey)) || [];
+
+      for (let i = 0; i < rows * cols; i++) {
+        const seat = document.createElement('div');
+        seat.classList.add('seat');
+        if (bookedSeats.includes(i)) {
+          seat.classList.add('booked');
+        } else {
+          seat.addEventListener('click', () => toggleSeat(i, seat));
+        }
+        seatContainer.appendChild(seat);
+      }
+
+      updateSummary();
+    }
+
+    function toggleSeat(index, seatEl) {
+      const pos = selectedSeats.indexOf(index);
+      if (pos > -1) {
+        selectedSeats.splice(pos, 1);
+        seatEl.classList.remove('selected');
+      } else {
+        selectedSeats.push(index);
+        seatEl.classList.add('selected');
+      }
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const price = parseInt(movieSelect.value);
+      const total = selectedSeats.length * price;
+      summary.textContent = `You selected ${selectedSeats.length} seat(s). Total: ₹${total}`;
+    }
+
+    function confirmBooking() {
+      if (selectedSeats.length === 0) {
+        alert('Please select at least one seat.');
+        return;
+      }
+
+      const key = `${movieSelect.value}_${showSelect.value}`;
+      const existing = JSON.parse(localStorage.getItem(key)) || [];
+      const updated = [...existing, ...selectedSeats];
+      localStorage.setItem(key, JSON.stringify(updated));
+      alert('🎉 Booking confirmed!');
+      generateSeats();
+    }
+
+    movieSelect.addEventListener('change', generateSeats);
+    showSelect.addEventListener('change', generateSeats);
+
+    // Init
+    generateSeats();
+  </script>
+
+</body>
+</html>
+
